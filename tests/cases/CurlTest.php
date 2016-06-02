@@ -2,6 +2,7 @@
 
 namespace Curlyc;
 
+use Curlyc\Blank\EchoResponse;
 use Testo;
 
 /**
@@ -10,7 +11,7 @@ use Testo;
  * @coversDefaultClass Curlyc/Curl
  * @backupStaticAttributes enabled
  */
-class CurlTest extends \PHPUnit_Framework_TestCase{
+class CurlTest extends \PHPUnit_Framework_TestCase {
 
 	/**
 	 * @covers curl_init
@@ -125,14 +126,66 @@ class CurlTest extends \PHPUnit_Framework_TestCase{
 	 * @covers Curl::exec
 	 */
 	public function testGetExecHttp() {
-		$server = new Testo\Server(Testo\SimpleResponse::class);
+		$server = new Testo\Server(EchoResponse::class);
+		$expected = '{"get":{"asdf":"3423"},"post":[]}';
+
+		// dump result case
 		$curl = curl_init($server->getUrl() ."/test?asdf=3423");
 		ob_start();
 		$this->assertTrue(curl_exec($curl));
 		$content = ob_get_contents();
 		ob_end_clean();
-		$expected = '{"headers":{"Host":"127.0.0.1:12345","Accept":"*/*"},"host":"127.0.0.1:12345","uri":"/test?asdf=3423","get":{"asdf":"3423"},"post":[]}';
 		$this->assertSame($expected, $content);
 		curl_close($curl);
+
+		// return result case
+		$curl = curl_init($server->getUrl() ."/test?asdf=3423");
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		$content = curl_exec($curl);
+		$this->assertSame($expected, $content);
+		curl_close($curl);
+	}
+
+	/**
+	 * With CURLOPT_HEADER option we'll get response with plain headers
+	 * @covers curl_setopt
+	 * @covers Curl::setOpt
+	 */
+	public function testCurlOptHeader() {
+		$server = new Testo\Server(EchoResponse::class);
+		$curl = curl_init($server->getUrl() ."/test?asdf=3423");
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_HEADER, 1);
+		$content = curl_exec($curl);
+		curl_close($curl);
+
+		$headers = [
+			"HTTP/1.1 200 OK",
+			"Host: 127.0.0.1:12345",
+			"Connection: close",
+			"X-Powered-By: PHP/5.5.31",
+			"Content-type: text/html",
+		];
+		$expected = '{"get":{"asdf":"3423"},"post":[]}';
+		$this->assertSame(implode("\r\n", $headers) . "\r\n\r\n" . $expected, $content);
+	}
+
+	/**
+	 * With CURLOPT_USERAGENT option we'll send specified user-agent
+	 * @covers curl_setopt
+	 * @covers Curl::setOpt
+	 */
+	public function testCurlOptUserAgent() {
+		$test_user_agent = "test-user-agent";
+		$server = new Testo\Server(Testo\SimpleResponse::class);
+		$curl = curl_init($server->getUrl());
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_HEADER, 0);
+		curl_setopt($curl, CURLOPT_USERAGENT, $test_user_agent);
+		$content = curl_exec($curl);
+		curl_close($curl);
+
+		$content = json_decode($content, 1);
+		$this->assertSame($test_user_agent, $content["headers"]["User-Agent"]);
 	}
 }

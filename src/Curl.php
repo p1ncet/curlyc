@@ -262,7 +262,7 @@ class Curl {
 		$ip = gethostbyname($parts["host"]);
 		$this->namelookup_time = microtime(true) - $start;
 		if ($ip == $parts["host"]) {
-			return !$this->errno = CURLE_COULDNT_CONNECT;
+//			return !$this->errno = CURLE_COULDNT_CONNECT;
 		}
 		$this->primary_ip = $ip;
 		$this->local_ip = $ip;
@@ -275,13 +275,20 @@ class Curl {
 	 */
 	private function get() {
 		$start = microtime(true);
-		
-		$client = new GuzzleHttp\Client(['handler' => new GuzzleHttp\Handler\StreamHandler()]);
+
+		$headers = [];
+		if (!empty($this->options[CURLOPT_USERAGENT])) {
+			$headers["User-Agent"] = $this->options[CURLOPT_USERAGENT];
+		}
+		$client = new GuzzleHttp\Client([
+			"handler" => new GuzzleHttp\Handler\StreamHandler(),
+			"headers" => $headers,
+		]);
 		$options = [];
 		$res = $client->request('GET', $this->url, $options);
 		$headers = "";
 		foreach ($res->getHeaders() as $name => $values) {
-			$headers .= $name . ": " . implode(", ", $values) . PHP_EOL;
+			$headers .= $name . ": " . implode(", ", $values) . "\r\n";
 		}
 		$this->content_type = $res->getHeaderLine("content-type");
 		$this->http_code = $res->getStatusCode();
@@ -295,7 +302,16 @@ class Curl {
 		$this->total_time = microtime(true) - $start;
 		$this->speed_download = $this->size_download / $this->total_time;
 
-		return $res->getBody()->getContents();
+		$response = $res->getBody()->getContents();
+		if (!empty($this->options[CURLOPT_HEADER])) {
+			$first = implode(" ", [
+				"HTTP/" . $res->getProtocolVersion(),
+				$res->getStatusCode(),
+				$res->getReasonPhrase(),
+			]);
+			$response = implode("\r\n", [$first, $headers, $response]);
+		}
+		return $response;
 	}
 
 	public function is_init() {

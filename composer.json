@@ -19,9 +19,14 @@
 		"testo/testo": "dev-master"
 	},
 	"autoload": {
-		"psr-0": {
+		"psr-4": {
 			"Curlyc\\": "src/"
 		},
 		"files": ["src/functions.php", "src/constants.php"]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Curlyc\\": "tests/"
+		}
 	}
 }
