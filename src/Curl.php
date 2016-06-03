@@ -3,6 +3,8 @@
 namespace Curlyc;
 
 use GuzzleHttp;
+use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class Curlyk
@@ -64,8 +66,9 @@ class Curl {
 	private $primary_port       = 0;
 	private $local_ip           = "";
 	private $local_port         = 0;
+	private $request_header     = false;
 	//</editor-fold>
-	
+
 	/**
 	 * @param string $url
 	 */
@@ -147,7 +150,7 @@ class Curl {
 				"primary_port"              => $this->primary_port,
 				"local_ip"                  => $this->local_ip,
 				"local_port"                => $this->local_port,
-			];
+			] + (!empty($this->options[CURLINFO_HEADER_OUT]) ? ["request_header" => $this->request_header] : []);
 		} else {
 			switch ($opt) {
 				case CURLINFO_EFFECTIVE_URL:            return $this->url;
@@ -176,7 +179,7 @@ class Curl {
 				case CURLINFO_PRIMARY_PORT:             return $this->primary_port;
 				case CURLINFO_LOCAL_IP:                 return $this->local_ip;
 				case CURLINFO_LOCAL_PORT:               return $this->local_port;
-				case CURLINFO_HEADER_OUT:               return false;
+				case CURLINFO_HEADER_OUT:               return $this->request_header;
 			}
 		}
 		return false;
@@ -226,7 +229,7 @@ class Curl {
 	 */
 	private function initate() {
 		if (!$this->url) {
-			return false;
+			return !$this->errno = CURLE_URL_MALFORMAT;
 		}
 		$parts = parse_url($this->url);
 		// default scheme is http
@@ -277,23 +280,45 @@ class Curl {
 		$start = microtime(true);
 
 		$client = new GuzzleHttp\Client([
-//			"timeout" => 2,
+			"connect_timeout" => isset($this->options[CURLOPT_CONNECTTIMEOUT]) ? $this->options[CURLOPT_CONNECTTIMEOUT] : 60,
+			"timeout" => isset($this->options[CURLOPT_TIMEOUT]) ? $this->options[CURLOPT_TIMEOUT] : 60,
 			"handler" => new GuzzleHttp\Handler\StreamHandler(),
 			"headers" => $this->getHeaders(),
 		]);
-		if (!empty($this->options[CURLOPT_POST]) || !empty($this->options[CURLOPT_POSTFIELDS])) {
-			$data = [];
+		$data = [];
+		$data['version'] = "1.1";
+		if (!empty($this->options[CURLOPT_HTTP_VERSION]) && $this->options[CURLOPT_HTTP_VERSION] == CURL_HTTP_VERSION_1_0) {
+			$data['version'] = "1.0";
+		}
+		$method = "GET";
+		if (!empty($this->options[CURLOPT_CUSTOMREQUEST])) {
+			$method = $this->options[CURLOPT_CUSTOMREQUEST];
+		} elseif (
+			empty($this->options[CURLOPT_HTTPGET]) &&
+			(!empty($this->options[CURLOPT_POST]) || !empty($this->options[CURLOPT_POSTFIELDS]))
+		) {
+			$method = "POST";
 			if (!empty($this->options[CURLOPT_POSTFIELDS])) {
-				$data['form_params'] = $this->options[CURLOPT_POSTFIELDS];
+				if (is_array($this->options[CURLOPT_POSTFIELDS])) {
+					$data["form_params"] = is_array($this->options[CURLOPT_POSTFIELDS]);
+				} else {
+					parse_str($this->options[CURLOPT_POSTFIELDS], $data["form_params"]);
+				}
 			}
-			$res = $client->post($this->url, $data);
-		} else {
-			$res = $client->get($this->url);
 		}
-		$headers = "";
-		foreach ($res->getHeaders() as $name => $values) {
-			$headers .= $name . ": " . implode(", ", $values) . "\r\n";
+		if (!empty($this->options[CURLINFO_HEADER_OUT])) {
+			$this->request_header = $this->getRequestHeader($method, $data['version'], $client->getConfig("headers"));
 		}
+		try {
+			$res = $client->request($method, $this->url, $data);
+		} catch (RequestException $e) {
+			return !$this->errno = CURLE_OPERATION_TIMEOUTED;
+		} catch (\Exception $e) {
+			var_dump(get_class($e));
+			var_dump($e->getMessage());
+			return !$this->errno = 10001;
+		}
+		$headers = $this->getResponseHeaders($res);
 		$this->content_type = $res->getHeaderLine("content-type");
 		$this->http_code = $res->getStatusCode();
 		$this->header_size = strlen($headers);
@@ -308,12 +333,7 @@ class Curl {
 
 		$response = $res->getBody()->getContents();
 		if (!empty($this->options[CURLOPT_HEADER])) {
-			$first = implode(" ", [
-				"HTTP/" . $res->getProtocolVersion(),
-				$res->getStatusCode(),
-				$res->getReasonPhrase(),
-			]);
-			$response = implode("\r\n", [$first, $headers, $response]);
+			$response = implode("\r\n", [$headers, $response]);
 		}
 		return $response;
 	}
@@ -345,6 +365,49 @@ class Curl {
 		if (!empty($this->options[CURLOPT_ENCODING])) {
 			$headers["Accept-Encoding"] = $this->options[CURLOPT_ENCODING];
 		}
+		if (!empty($this->options[CURLOPT_USERPWD])) {
+			$headers["Authorization"] = "Basic " . base64_encode($this->options[CURLOPT_USERPWD]);
+		}
 		return $headers;
+	}
+
+	/**
+	 * @param ResponseInterface $res
+	 * @return array
+	 */
+	private function getResponseHeaders(ResponseInterface $res) {
+		$headers[] = implode(" ", [
+			"HTTP/" . $res->getProtocolVersion(),
+			$res->getStatusCode(),
+			$res->getReasonPhrase(),
+		]);
+		foreach ($res->getHeaders() as $name => $values) {
+			$headers[] = "$name: " . implode(", ", $values);
+		}
+		$headers[] = "\r\n";
+		if (!empty($this->options[CURLOPT_HEADERFUNCTION])) {
+			array_map(function($el) {
+				$this->options[CURLOPT_HEADERFUNCTION]($this, $el);
+			}, $headers);
+		}
+		return implode("\r\n", $headers);
+	}
+
+	/**
+	 * @param string $method
+	 * @param string $version
+	 * @param array $headers
+	 * @return string
+	 */
+	private function getRequestHeader($method, $version, array $headers) {
+		$rheaders = [
+			"$method / HTTP/$version",
+			"Host: {$this->host}:{$this->primary_port}",
+			"Accept: */*",
+		];
+		foreach ($headers as $k => $v) {
+			$rheaders[] = "$k: $v";
+		}
+		return implode("\r\n", $rheaders) . "\r\n\r\n";
 	}
 }

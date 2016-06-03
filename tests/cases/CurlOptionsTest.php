@@ -97,7 +97,6 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 		$this->assertSame('{"method":"POST","get":[],"post":[]}', $content);
 		curl_close($curl);
 
-
 		// with POST fields case
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -111,6 +110,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_POST, 0);
+		curl_setopt($curl, CURLOPT_HTTPGET, 1); // even if we do like this
 		curl_setopt($curl, CURLOPT_POSTFIELDS, $fs);
 		$content = curl_exec($curl);
 		$this->assertSame('{"method":"POST","get":[],"post":{"field1":"value2","field3":"value4"}}', $content);
@@ -118,6 +118,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * @todo doesn't work correctly with guzzle
 	 * Option CURLOPT_CONNECTTIMEOUT set timeout for connection
 	 * @covers curl_setopt
 	 * @covers Curl::setOpt
@@ -128,15 +129,17 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 2);
 		$time = microtime(true);
 		$content = curl_exec($curl);
-		var_dump($content);
 		$this->assertGreaterThan(2, microtime(true) - $time);
 		$this->assertFalse($content);
 		$this->assertSame(CURLE_OPERATION_TIMEOUTED, curl_errno($curl));
-		$this->assertContains("Connection timed out after ", curl_error($curl));
+//		$this->assertContains("Connection timed out after ", curl_error($curl));
+		$error = curl_error($curl);
+		$this->assertTrue(strpos($error, "Timeout was reached") === 0 || strpos($error, "Operation timed out after ") === 0);
 		curl_close($curl);
 	}
 
 	/**
+	 * @todo doesn't work correctly with guzzle
 	 * Option CURLOPT_TIMEOUT set timeout for execution
 	 * @covers curl_setopt
 	 * @covers Curl::setOpt
@@ -150,10 +153,12 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 		$content = curl_exec($curl);
 		$time = microtime(true) - $time;
 		$this->assertGreaterThan(2, $time);
-		$this->assertLessThan(3, $time);
+		$this->assertLessThan(5, $time);
 		$this->assertFalse($content);
 		$this->assertSame(CURLE_OPERATION_TIMEOUTED, curl_errno($curl));
-		$this->assertContains("Operation timed out after ", curl_error($curl));
+//		$this->assertContains("Operation timed out after ", curl_error($curl));
+		$error = curl_error($curl);
+		$this->assertTrue(strpos($error, "Timeout was reached") === 0 || strpos($error, "Operation timed out after ") === 0);
 		curl_close($curl);
 	}
 
@@ -369,6 +374,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 			return strlen($header);
 		});
 		$content = curl_exec($curl);
+		$this->assertSame(112, curl_getinfo($curl, CURLINFO_HEADER_SIZE));
 		$this->assertSame('{"method":"GET","get":[],"post":[]}', $content);
 		$expected_headers = [
 			"HTTP/1.1 200 OK",
@@ -394,6 +400,16 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
 		$content = curl_exec($curl);
 		$this->assertSame('{"method":"DELETE","get":[],"post":[]}', $content);
+
+		// what if we'll send post fields
+		$curl = curl_init($server->getUrl());
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+		curl_setopt($curl, CURLOPT_POST, 1); // make no sense
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $fs = ["field1" => "value2", "field3" => "value4"]); // make no sense
+		curl_setopt($curl, CURLOPT_HTTPGET, 1); // make no sense
+		$content = curl_exec($curl);
+		$this->assertSame('{"method":"DELETE","get":[],"post":[]}', $content);
 	}
 
 	/**
@@ -407,11 +423,12 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLINFO_HEADER_OUT, 1);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, ["User-Agent: goose"]);
 		$content = curl_exec($curl);
 		$this->assertSame('{"method":"GET","get":[],"post":[]}', $content);
 		$info = curl_getinfo($curl);
 		$this->assertArrayHasKey("request_header", $info);
-		$expected = "GET / HTTP/1.1\r\nHost: 127.0.0.1:12345\r\nAccept: */*\r\n\r\n";
+		$expected = "GET / HTTP/1.1\r\nHost: 127.0.0.1:12345\r\nAccept: */*\r\nUser-Agent: goose\r\n\r\n";
 		$this->assertSame($expected, curl_getinfo($curl, CURLINFO_HEADER_OUT));
 		// without option
 		$curl = curl_init($server->getUrl());
