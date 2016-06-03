@@ -276,16 +276,20 @@ class Curl {
 	private function get() {
 		$start = microtime(true);
 
-		$headers = [];
-		if (!empty($this->options[CURLOPT_USERAGENT])) {
-			$headers["User-Agent"] = $this->options[CURLOPT_USERAGENT];
-		}
 		$client = new GuzzleHttp\Client([
+//			"timeout" => 2,
 			"handler" => new GuzzleHttp\Handler\StreamHandler(),
-			"headers" => $headers,
+			"headers" => $this->getHeaders(),
 		]);
-		$options = [];
-		$res = $client->request('GET', $this->url, $options);
+		if (!empty($this->options[CURLOPT_POST]) || !empty($this->options[CURLOPT_POSTFIELDS])) {
+			$data = [];
+			if (!empty($this->options[CURLOPT_POSTFIELDS])) {
+				$data['form_params'] = $this->options[CURLOPT_POSTFIELDS];
+			}
+			$res = $client->post($this->url, $data);
+		} else {
+			$res = $client->get($this->url);
+		}
 		$headers = "";
 		foreach ($res->getHeaders() as $name => $values) {
 			$headers .= $name . ": " . implode(", ", $values) . "\r\n";
@@ -320,5 +324,27 @@ class Curl {
 			$function = (new \Exception())->getTrace()[1]['function'];
 			throw new \Exception("$function(): supplied resource is not a valid cURL handle resource");
 		}
+	}
+
+	/**
+	 * @return array
+	 */
+	private function getHeaders() {
+		$headers = [];
+		// set headers
+		if (!empty($this->options[CURLOPT_HTTPHEADER])) {
+			foreach ($this->options[CURLOPT_HTTPHEADER] as $option) {
+				list($key, $value) = explode(": ", $option);
+				$headers[$key] = $value;
+			}
+		}
+		// set user-agent
+		if (!empty($this->options[CURLOPT_USERAGENT])) {
+			$headers["User-Agent"] = $this->options[CURLOPT_USERAGENT];
+		}
+		if (!empty($this->options[CURLOPT_ENCODING])) {
+			$headers["Accept-Encoding"] = $this->options[CURLOPT_ENCODING];
+		}
+		return $headers;
 	}
 }
