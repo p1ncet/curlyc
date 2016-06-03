@@ -2,9 +2,6 @@
 
 namespace Curlyc;
 
-use Curlyc\Blank\EchoResponse;
-use Curlyc\Blank\GzipResponse;
-use Curlyc\Blank\SleepResponse;
 use Testo;
 
 /**
@@ -21,7 +18,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptHeader() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl() ."/test?asdf=3423");
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_HEADER, 1);
@@ -87,7 +84,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptPost() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 
 		// without POST fields case
 		$curl = curl_init($server->getUrl());
@@ -145,7 +142,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptTimeout() {
-		$server = new Testo\Server(SleepResponse::class);
+		$server = new Testo\Server(Testo\SleepResponse::class);
 		$curl = curl_init($server->getUrl() . "/?sleep=5");
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_TIMEOUT, 2);
@@ -169,7 +166,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptSslVerifyPeer() {
-//		$server = new Testo\Server(EchoResponse::class);
+//		$server = new Testo\Server(Testo\EchoResponse::class);
 //		$curl = curl_init($server->getUrl());
 //		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 //		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -191,7 +188,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptCaInfo() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_CAINFO, __DIR__ . "/../fb_ca_chain_bundle.crt");
@@ -204,7 +201,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptCaPath() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_CAPATH, __DIR__ . "/../fb_ca_chain_bundle.crt");
@@ -216,7 +213,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptEncoding() {
-		$server = new Testo\Server(GzipResponse::class);
+		$server = new Testo\Server(Testo\GzipResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_ENCODING, "gzip,deflate");
@@ -282,7 +279,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOptArray
 	 */
 	public function testCurlSetOptArray() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		$options = [
 			CURLOPT_RETURNTRANSFER => 1,
@@ -336,7 +333,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptHttpVersion() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		// http version 1.1 case
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -365,7 +362,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptHeaderFunction() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		$headers = [];
@@ -394,7 +391,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptCustomReuest() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
@@ -418,7 +415,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlInfoHeaderOut() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		// with option
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
@@ -448,7 +445,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptIpResolve() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
@@ -461,7 +458,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptFollowLocation() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
@@ -473,7 +470,7 @@ class CurlOptionsTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::setOpt
 	 */
 	public function testCurlOptHttpGet() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$curl = curl_init($server->getUrl());
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($curl, CURLOPT_POST, 1);

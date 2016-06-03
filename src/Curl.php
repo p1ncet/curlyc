@@ -333,7 +333,7 @@ class Curl {
 
 		$response = $res->getBody()->getContents();
 		if (!empty($this->options[CURLOPT_HEADER])) {
-			$response = implode("\r\n", [$headers, $response]);
+			$response = $headers . $response;
 		}
 		return $response;
 	}

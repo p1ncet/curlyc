@@ -2,7 +2,6 @@
 
 namespace Curlyc;
 
-use Curlyc\Blank\EchoResponse;
 use Testo;
 
 /**
@@ -129,7 +128,7 @@ class CurlTest extends \PHPUnit_Framework_TestCase {
 	 * @covers Curl::exec
 	 */
 	public function testGetExecHttp() {
-		$server = new Testo\Server(EchoResponse::class);
+		$server = new Testo\Server(Testo\EchoResponse::class);
 		$expected = '{"method":"GET","get":{"asdf":"3423"},"post":[]}';
 
 		// dump result case

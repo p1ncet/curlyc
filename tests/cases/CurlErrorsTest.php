@@ -2,9 +2,6 @@
 
 namespace Curlyc;
 
-use Curlyc\Blank\EchoResponse;
-use Curlyc\Blank\GzipResponse;
-use Curlyc\Blank\SleepResponse;
 use Testo;
 
 /**
