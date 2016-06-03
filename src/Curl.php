@@ -279,12 +279,16 @@ class Curl {
 	private function get() {
 		$start = microtime(true);
 
-		$client = new GuzzleHttp\Client([
+		$config = [
 			"connect_timeout" => isset($this->options[CURLOPT_CONNECTTIMEOUT]) ? $this->options[CURLOPT_CONNECTTIMEOUT] : 60,
 			"timeout" => isset($this->options[CURLOPT_TIMEOUT]) ? $this->options[CURLOPT_TIMEOUT] : 60,
 			"handler" => new GuzzleHttp\Handler\StreamHandler(),
 			"headers" => $this->getHeaders(),
-		]);
+		];
+		if (!isset($this->options[CURLOPT_ENCODING])) {
+			$config["decode_content"] = false;
+		}
+		$client = new GuzzleHttp\Client($config);
 		$data = [];
 		$data['version'] = "1.1";
 		if (!empty($this->options[CURLOPT_HTTP_VERSION]) && $this->options[CURLOPT_HTTP_VERSION] == CURL_HTTP_VERSION_1_0) {

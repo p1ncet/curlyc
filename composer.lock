@@ -1191,12 +1191,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/p1ncet/testo.git",
-                "reference": "4f5cef9590e9a0048bb3a0b212111ea1d4fbfbe1"
+                "reference": "7e6f9b3ca685e549579024a63caf60d9ca24ae89"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/p1ncet/testo/zipball/4f5cef9590e9a0048bb3a0b212111ea1d4fbfbe1",
-                "reference": "4f5cef9590e9a0048bb3a0b212111ea1d4fbfbe1",
+                "url": "https://api.github.com/repos/p1ncet/testo/zipball/7e6f9b3ca685e549579024a63caf60d9ca24ae89",
+                "reference": "7e6f9b3ca685e549579024a63caf60d9ca24ae89",
                 "shasum": ""
             },
             "require": {
@@ -1223,7 +1223,7 @@
                 "server",
                 "test"
             ],
-            "time": "2016-06-02 11:46:22"
+            "time": "2016-06-03 18:04:04"
         }
     ],
     "aliases": [],
