@@ -81,6 +81,15 @@ class Curl {
 	}
 
 	/**
+	 * @param string $name
+	 * @param array $arguments
+	 * @throws \Exception
+	 */
+	public function __call($name, $arguments) {
+		throw new \Exception("Not implemented yet");
+	}
+
+	/**
 	 * @todo
 	 */
 	public function close() {
@@ -277,18 +286,10 @@ class Curl {
 	 * @return string
 	 */
 	private function get() {
-		$start = microtime(true);
+		$this->total_time = microtime(true);
 
-		$config = [
-			"connect_timeout" => isset($this->options[CURLOPT_CONNECTTIMEOUT]) ? $this->options[CURLOPT_CONNECTTIMEOUT] : 60,
-			"timeout" => isset($this->options[CURLOPT_TIMEOUT]) ? $this->options[CURLOPT_TIMEOUT] : 60,
-			"handler" => new GuzzleHttp\Handler\StreamHandler(),
-			"headers" => $this->getHeaders(),
-		];
-		if (!isset($this->options[CURLOPT_ENCODING])) {
-			$config["decode_content"] = false;
-		}
-		$client = new GuzzleHttp\Client($config);
+		$client = $this->getClient();
+
 		$data = [];
 		$data['version'] = "1.1";
 		if (!empty($this->options[CURLOPT_HTTP_VERSION]) && $this->options[CURLOPT_HTTP_VERSION] == CURL_HTTP_VERSION_1_0) {
@@ -298,13 +299,13 @@ class Curl {
 		if (!empty($this->options[CURLOPT_CUSTOMREQUEST])) {
 			$method = $this->options[CURLOPT_CUSTOMREQUEST];
 		} elseif (
-			empty($this->options[CURLOPT_HTTPGET]) &&
-			(!empty($this->options[CURLOPT_POST]) || !empty($this->options[CURLOPT_POSTFIELDS]))
+			(!empty($this->options[CURLOPT_POST]) && empty($this->options[CURLOPT_HTTPGET])) ||
+			!empty($this->options[CURLOPT_POSTFIELDS])
 		) {
 			$method = "POST";
 			if (!empty($this->options[CURLOPT_POSTFIELDS])) {
 				if (is_array($this->options[CURLOPT_POSTFIELDS])) {
-					$data["form_params"] = is_array($this->options[CURLOPT_POSTFIELDS]);
+					$data["form_params"] = $this->options[CURLOPT_POSTFIELDS];
 				} else {
 					parse_str($this->options[CURLOPT_POSTFIELDS], $data["form_params"]);
 				}
@@ -313,6 +314,7 @@ class Curl {
 		if (!empty($this->options[CURLINFO_HEADER_OUT])) {
 			$this->request_header = $this->getRequestHeader($method, $data['version'], $client->getConfig("headers"));
 		}
+				
 		try {
 			$res = $client->request($method, $this->url, $data);
 		} catch (RequestException $e) {
@@ -323,17 +325,8 @@ class Curl {
 			return !$this->errno = 10001;
 		}
 		$headers = $this->getResponseHeaders($res);
-		$this->content_type = $res->getHeaderLine("content-type");
-		$this->http_code = $res->getStatusCode();
-		$this->header_size = strlen($headers);
-		$this->request_size;
-		$this->connect_time;
-		$this->pretransfer_time;
-		$this->starttransfer_time;
 
-		$this->size_download = strlen($res->getBody()->getSize());
-		$this->total_time = microtime(true) - $start;
-		$this->speed_download = $this->size_download / $this->total_time;
+		$this->setStats($res, $headers);
 
 		$response = $res->getBody()->getContents();
 		if (!empty($this->options[CURLOPT_HEADER])) {
@@ -413,5 +406,39 @@ class Curl {
 			$rheaders[] = "$k: $v";
 		}
 		return implode("\r\n", $rheaders) . "\r\n\r\n";
+	}
+
+	/**
+	 * @param ResponseInterface $res
+	 * @param string $headers
+	 */
+	private function setStats(ResponseInterface $res, $headers) {
+		$this->content_type = $res->getHeaderLine("content-type");
+		$this->http_code = $res->getStatusCode();
+		$this->header_size = strlen($headers);
+		$this->request_size;
+		$this->connect_time;
+		$this->pretransfer_time;
+		$this->starttransfer_time;
+
+		$this->size_download = strlen($res->getBody()->getSize());
+		$this->total_time = microtime(true) - $this->total_time;
+		$this->speed_download = $this->size_download / $this->total_time;
+	}
+
+	/**
+	 * @return GuzzleHttp\Client
+	 */
+	private function getClient() {
+		$config = [
+			"connect_timeout" => isset($this->options[CURLOPT_CONNECTTIMEOUT]) ? $this->options[CURLOPT_CONNECTTIMEOUT] : 60,
+			"timeout" => isset($this->options[CURLOPT_TIMEOUT]) ? $this->options[CURLOPT_TIMEOUT] : 60,
+			"handler" => new GuzzleHttp\Handler\StreamHandler(),
+			"headers" => $this->getHeaders(),
+		];
+		if (!isset($this->options[CURLOPT_ENCODING])) {
+			$config["decode_content"] = false;
+		}
+		return new GuzzleHttp\Client($config);
 	}
 }

@@ -20,13 +20,9 @@
 	},
 	"autoload": {
 		"psr-4": {
-			"Curlyc\\": "src/"
+			"\\": "src/",
+			"Curlyc\\": "src/Curlyc"
 		},
 		"files": ["src/functions.php", "src/constants.php"]
-	},
-	"autoload-dev": {
-		"psr-4": {
-			"Curlyc\\": "tests/"
-		}
 	}
 }

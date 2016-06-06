@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "02087337983b50ec7fee3d2ab277d376",
+    "hash": "efe254852988b988524cc5dbd3114721",
     "content-hash": "04c4738e0eacf26cfac64acb27b0f0a5",
     "packages": [
         {
@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/guzzle.git",
-                "reference": "b1a96f6134f69cb41f8538d3a6491f4bb1dbab78"
+                "reference": "6a37496c2b7855f5c88cac89c5f56a07e326d63c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/b1a96f6134f69cb41f8538d3a6491f4bb1dbab78",
-                "reference": "b1a96f6134f69cb41f8538d3a6491f4bb1dbab78",
+                "url": "https://api.github.com/repos/guzzle/guzzle/zipball/6a37496c2b7855f5c88cac89c5f56a07e326d63c",
+                "reference": "6a37496c2b7855f5c88cac89c5f56a07e326d63c",
                 "shasum": ""
             },
             "require": {
@@ -67,7 +67,7 @@
                 "rest",
                 "web service"
             ],
-            "time": "2016-05-08 19:39:56"
+            "time": "2016-06-04 22:16:20"
         },
         {
             "name": "guzzlehttp/promises",

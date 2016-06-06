@@ -67,7 +67,6 @@ if (!extension_loaded('curl')) {
 	}
 
 	/**
-	 * @todo
 	 * Create a CURLFile object
 	 * @link http://www.php.net/manual/en/curlfile.construct.php
 	 * @param string $filename <p> Path to the file which will be uploaded.</p>
@@ -143,14 +142,18 @@ if (!extension_loaded('curl')) {
 	 * @return int 0 on success, or one of the CURLM_XXX errors
 	 * code.
 	 */
-	function curl_multi_add_handle($mh, $ch) {}
+	function curl_multi_add_handle($mh, $ch) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Close a set of cURL handles
 	 * @link http://php.net/manual/en/function.curl-multi-close.php
 	 * @param resource $mh
 	 */
-	function curl_multi_close($mh) {}
+	function curl_multi_close($mh) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Run the sub-connections of the current cURL handle
@@ -166,7 +169,9 @@ if (!extension_loaded('curl')) {
 	 * occurred problems on individual transfers even when this function returns
 	 * CURLM_OK.
 	 */
-	function curl_multi_exec($mh, &$still_running) {}
+	function curl_multi_exec($mh, &$still_running) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Return the content of a cURL handle if <constant>CURLOPT_RETURNTRANSFER</constant> is set
@@ -174,7 +179,9 @@ if (!extension_loaded('curl')) {
 	 * @param Curl $ch
 	 * @return string Return the content of a cURL handle if CURLOPT_RETURNTRANSFER is set.
 	 */
-	function curl_multi_getcontent(Curl $ch) {}
+	function curl_multi_getcontent(Curl $ch) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Get information about the current transfers
@@ -185,14 +192,18 @@ if (!extension_loaded('curl')) {
 	 * </p>
 	 * @return array On success, returns an associative array for the message, false on failure.
 	 */
-	function curl_multi_info_read($mh, &$msgs_in_queue = null) {}
+	function curl_multi_info_read($mh, &$msgs_in_queue = null) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Returns a new cURL multi handle
 	 * @link http://php.net/manual/en/function.curl-multi-init.php
 	 * @return resource a cURL multi handle resource on success, false on failure.
 	 */
-	function curl_multi_init() {}
+	function curl_multi_init() {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Remove a multi handle from a set of cURL handles
@@ -201,7 +212,9 @@ if (!extension_loaded('curl')) {
 	 * @param Curl $ch
 	 * @return int On success, returns a cURL handle, false on failure.
 	 */
-	function curl_multi_remove_handle($mh, $ch) {}
+	function curl_multi_remove_handle($mh, $ch) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Wait for activity on any curl_multi connection
@@ -213,7 +226,9 @@ if (!extension_loaded('curl')) {
 	 * @return int On success, returns the number of descriptors contained in,
 	 * the descriptor sets. On failure, this function will return -1 on a select failure or timeout (from the underlying select system call).
 	 */
-	function curl_multi_select($mh, $timeout = null) {}
+	function curl_multi_select($mh, $timeout = null) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Set an option for the cURL multi handle
@@ -264,7 +279,9 @@ if (!extension_loaded('curl')) {
 	 * </table>
 	 * @return boolean Returns TRUE on success or FALSE on failure.
 	 */
-	function curl_multi_setopt($mh, $option, $value) {}
+	function curl_multi_setopt($mh, $option, $value) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Return string describing error code
@@ -274,7 +291,9 @@ if (!extension_loaded('curl')) {
 	 * </p>
 	 * @return string|NULL Returns error string for valid error code, NULL otherwise.
 	 */
-	function curl_multi_strerror($errornum) {}
+	function curl_multi_strerror($errornum) {
+		throw new RuntimeException("Not implemented yet");
+	}
 	//</editor-fold>
 
 	/**
@@ -285,7 +304,9 @@ if (!extension_loaded('curl')) {
 	 * @param int $bitmask <p>One of <b>CURLPAUSE_*</b> constants.</p>
 	 * @return int Returns an error code (<b>CURLE_OK</b> for no error).
 	 */
-	function curl_pause(Curl $ch, $bitmask) {}
+	function curl_pause(Curl $ch, $bitmask) {
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	/**
 	 * Reset all options of a libcurl session handle
@@ -2380,5 +2401,4 @@ if (!extension_loaded('curl')) {
 			"protocols"          => Curl::PROTOCOLS,
 		];
 	}
-
 }
