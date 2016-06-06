@@ -1,5 +1,5 @@
 {
-	"name": "Curlyc",
+	"name": "curlyc/curl",
 	"description": "Instead of ext-curl",
 	"keywords": ["curl", "implementation", "client", "libcurl"],
 	"license": "MIT",
